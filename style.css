@@ -1,0 +1,20 @@
+:root {
+    --red: tomato;
+    --bgColor: bisque;
+}
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+}
+
+body{
+    display: grid;
+    place-items: center;
+    background-color: var(--bgColor);
+}
+
+canvas {
+    display: block;
+    box-shadow: 50px 50px 0 -40px var(--red);
+}
