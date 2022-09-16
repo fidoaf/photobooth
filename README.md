@@ -3,7 +3,7 @@
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/fidoaf/photobooth/blob/master/LICENSE)
 
 [![Version](https://badge.fury.io/gh/tterb%2FHyde.svg)](https://badge.fury.io/gh/tterb%2FHyde)
-[![GitHub Release](https://img.shields.io/github/release/tterb/PlayMusic.svg?style=flat)]()  
+[![GitHub Release](https://img.shields.io/github/v/tag/fidoaf/photobooth)]()  
 
 Fun online webcam photobooth powered by p5js
 
