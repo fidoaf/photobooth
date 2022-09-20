@@ -10,6 +10,14 @@ const WIDTH = 800 //Math.max(document.documentElement.clientWidth || 0, window.i
 const HEIGHT = 600 //Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
 
 function setup() {
+    /**
+     * IMPORTANT NOTE:
+     * DO NOT REMOVE this line!
+     * On high density screens the total amount of pixels
+     * to be modified increases n-fold (4 time for ppi=4)
+     */
+    pixelDensity(1);
+
     canvas = createCanvas(WIDTH, HEIGHT);
 
     //
@@ -21,10 +29,10 @@ function setup() {
     let controls = createDiv();
     let effect_controls = createDiv();
     effect_controls.parent(controls);
-    let capture_controls = createDiv();
-    capture_controls.parent(controls);
     settings_controls = createDiv();
     settings_controls.parent(controls);
+    let capture_controls = createDiv();
+    capture_controls.parent(controls);
     //
     let btnPrev = createButton('<');
     btnPrev.mousePressed(prev_effect);
@@ -48,6 +56,8 @@ function setup() {
     btnCapture.parent(capture_controls);
 
     start_time = millis();
+
+    // PoseNet-related effects
 }
 
 // function windowResized() {
@@ -63,12 +73,12 @@ function centerElement(element) {
 function effect_changed() {
     let currentIndex = effect_list.elt.selectedIndex;
     // Execute current effects's post function
-    if(current_effect.postfunction) current_effect.postfunction();
+    if (current_effect.postfunction) current_effect.postfunction();
     current_effect = EFFECT_DATA_LIST[currentIndex];
     //
     settings_controls.html(null);
-    if(current_effect.parameters){
-        for(let param of current_effect.parameters){
+    if (current_effect.parameters) {
+        for (let param of current_effect.parameters) {
             let min = param.min || 0;
             let max = param.max || 10;
             let val = param.default || (max - min) / 2;
@@ -79,7 +89,7 @@ function effect_changed() {
         }
     }
     // Execute new effects's pre function
-    if(current_effect.prefunction) current_effect.prefunction();
+    if (current_effect.prefunction) current_effect.prefunction();
 }
 
 function prev_effect() {
@@ -113,7 +123,7 @@ function downloadCanvas() {
 
 // Return the number of seconds elapsed from sketch's start time
 // or input start time
-function time_lapsed(custom_start){
+function time_lapsed(custom_start) {
     let current_time = millis();
     return Math.round((current_time - (custom_start || start_time)) / 1000);
 }
@@ -125,11 +135,11 @@ function draw() {
         if (current_effect.updatePixels) loadPixels();
 
         let params = {};
-        if(current_effect.parameters){
-            for(let param of current_effect.parameters){
+        if (current_effect.parameters) {
+            for (let param of current_effect.parameters) {
                 let key = param.name;
                 let val = window[key].value;
-                switch(param.type){
+                switch (param.type) {
                     case 'int': val = parseInt(val); break;
                     case 'float': val = parseFloat(val); break;
                 }
@@ -142,3 +152,6 @@ function draw() {
     }
 
 }
+
+
+// NEXT: https://editor.p5js.org/AndreasRef/sketches/r1_w73FhQ

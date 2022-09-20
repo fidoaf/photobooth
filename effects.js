@@ -105,11 +105,11 @@ function double_bottom_effect() {
     }
 }
 
-function pre_split_screen_effect(){
+function pre_split_screen_effect() {
     current_effect.function.start_time = millis();
     current_effect.function.backup = [];
 }
-function split_screen_effect({delay}){
+function split_screen_effect({ delay }) {
     let this_func = current_effect.function;
 
     for (let x = 0; x < WIDTH / 2; x++) {
@@ -126,9 +126,9 @@ function split_screen_effect({delay}){
 
     // Create a backup of frames to be used afterwards
     this_func.backup.push(pixels)
-    if(time_lapsed(this_func.start_time) > delay) 
+    if (time_lapsed(this_func.start_time) > delay)
         oldpixels = this_func.backup.shift();
-    else 
+    else
         oldpixels = this_func.backup[0];
 
     for (let x = WIDTH / 2; x < WIDTH; x++) {
@@ -144,11 +144,11 @@ function split_screen_effect({delay}){
     }
 }
 
-function colorize_effect({channel}) {
+function colorize_effect({ channel }) {
     for (let x = 0; x < WIDTH; x++) {
         for (let y = 0; y < HEIGHT; y++) {
             let index = (x + y * WIDTH) * 4;
-            
+
             pixels[index + channel] = 0;
         }
     }
@@ -169,16 +169,16 @@ function noise_effect() {
 
 function color_bars_effect() {
     for (let x = 0; x < WIDTH; x++) {
-        const channel = parseInt(Math.random() * 3);
+        const channel = int(Math.random() * 3);
         for (let y = 0; y < HEIGHT; y++) {
             let index = (x + y * WIDTH) * 4;
-            
+
             pixels[index + channel] = 0;
         }
     }
 }
 
-function threshold_effect({level}) {
+function threshold_effect({ level }) {
     filter(THRESHOLD, level)
 }
 
@@ -194,7 +194,7 @@ function invert_effect() {
     filter(INVERT)
 }
 
-function posterize_effect({range}) {
+function posterize_effect({ range }) {
     filter(POSTERIZE, range)
 }
 
@@ -202,7 +202,7 @@ function dilate_effect() {
     filter(DILATE)
 }
 
-function blur_effect({radius}) {
+function blur_effect({ radius }) {
     filter(BLUR, radius)
 }
 
@@ -210,7 +210,7 @@ function erode_effect() {
     filter(ERODE)
 }
 
-function dotted_effect({radius}) {
+function dotted_effect({ radius }) {
     background(0);
     capture.loadPixels();
     //var stepSize = floor(map(mouseX, 0, width, 5, 20));
@@ -226,7 +226,7 @@ function dotted_effect({radius}) {
     }
 }
 
-function pixelate_effect({interval}) {
+function pixelate_effect({ interval }) {
     for (let x = 0; x < WIDTH; x += interval) {
         for (let y = 0; y < HEIGHT; y += interval) {
             let index = (x + y * WIDTH) * 4;
@@ -250,6 +250,53 @@ function pixelate_effect({interval}) {
     }
 }
 
+function pre_face_mask_effect() {
+    current_effect.function.poses = [];
+    if (!current_effect.function.poseNet) {
+        // Create a new poseNet method with a single detection
+        current_effect.function.poseNet = ml5.poseNet(capture, function () {
+            console.log('Model Loaded');
+        });
+        // This sets up an event that fills the global variable "poses"
+        // with an array every time new poses are detected
+        current_effect.function.poseNet.on('pose', function (results) {
+            current_effect.function.poses = results;
+        });
+
+    }
+    current_effect.function.start_time = millis();
+    current_effect.function.backup = [];
+}
+function face_mask_effect() {
+    // Loop through all the poses detected
+    const poses = current_effect.function.poses;
+    for (let i = 0; i < poses.length; i++) {
+        // For each pose detected, loop through all the keypoints
+        let pose = poses[i].pose;
+
+        if(pose.nose.confidence > 0.5){
+            noStroke();
+            fill(255, 0, 0);
+            ellipse(pose.nose.x, pose.nose.y, 30, 30);
+            fill(255, 255, 255);
+            ellipse(pose.leftEye.x, pose.leftEye.y, 30, 30);
+            ellipse(pose.rightEye.x, pose.rightEye.y, 30, 30);
+        }
+        // for (let j = 0; j < pose.keypoints.length; j++) {
+        //     // A keypoint is an object describing a body part (like rightArm or leftShoulder)
+        //     let keypoint = pose.keypoints[j];
+        //     // Only draw an ellipse is the pose probability is bigger than 0.2
+        //     if (keypoint.score > 0.2) {
+        //         fill(255, 0, 0);
+        //         noStroke();
+        //         ellipse(keypoint.position.x, keypoint.position.y, 10, 10);
+        //     }
+        // }
+
+        //noLoop()
+    }
+}
+
 /**
  * TODO:
  * https://editor.p5js.org/brunoruchiga/sketches/Byms8vMam
@@ -263,6 +310,7 @@ function pixelate_effect({interval}) {
  * 
  * https://editor.p5js.org/jgl/sketches/XMy0GHKDIS
  * https://editor.p5js.org/pixelfelt/sketches/oS5CwSbM1
+ * https://editor.p5js.org/bestesaylar/sketches/o1LW7RQeK
  */
 
 ///////////////////////////////////////////////////////////////////////////
@@ -457,6 +505,13 @@ const EFFECT_DATA_LIST = [
                 "max": 20,
                 "default": 10,
             }
+        ]
+    },
+    {
+        "label": "Face mask",
+        "function": face_mask_effect,
+        "prefunction": pre_face_mask_effect,
+        "parameters": [
         ]
     },
 ];
