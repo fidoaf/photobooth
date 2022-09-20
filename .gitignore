@@ -1,2 +1,8 @@
+bin/**.js
+bin/**.css
+node_modules
+
+p5.js
+ml5.js
 
 TODO.txt
