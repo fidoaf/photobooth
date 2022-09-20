@@ -105,8 +105,46 @@ function double_bottom_effect() {
     }
 }
 
-const channel = parseInt(Math.random() * 3);
-function colorize_effect() {
+function pre_split_screen_effect(){
+    current_effect.function.start_time = millis();
+    current_effect.function.backup = [];
+}
+function split_screen_effect({delay}){
+    let this_func = current_effect.function;
+
+    for (let x = 0; x < WIDTH / 2; x++) {
+        for (let y = 0; y < HEIGHT; y++) {
+            let index = (x + y * WIDTH) * 4;
+            let newindex = (x + WIDTH / 4 + y * WIDTH) * 4;
+            // Render left side of the canvas
+            pixels[index + 0] = pixels[newindex + 0];
+            pixels[index + 1] = pixels[newindex + 1];
+            pixels[index + 2] = pixels[newindex + 2];
+            pixels[index + 3] = pixels[newindex + 3];
+        }
+    }
+
+    // Create a backup of frames to be used afterwards
+    this_func.backup.push(pixels)
+    if(time_lapsed(this_func.start_time) > delay) 
+        oldpixels = this_func.backup.shift();
+    else 
+        oldpixels = this_func.backup[0];
+
+    for (let x = WIDTH / 2; x < WIDTH; x++) {
+        for (let y = 0; y < HEIGHT; y++) {
+            let index = (x + y * WIDTH) * 4;
+            let newindex = (x - WIDTH / 2 + y * WIDTH) * 4;
+            // Render right side of the canvas
+            pixels[index + 0] = oldpixels[newindex + 0];
+            pixels[index + 1] = oldpixels[newindex + 1];
+            pixels[index + 2] = oldpixels[newindex + 2];
+            pixels[index + 3] = oldpixels[newindex + 3];
+        }
+    }
+}
+
+function colorize_effect({channel}) {
     for (let x = 0; x < WIDTH; x++) {
         for (let y = 0; y < HEIGHT; y++) {
             let index = (x + y * WIDTH) * 4;
@@ -131,17 +169,17 @@ function noise_effect() {
 
 function color_bars_effect() {
     for (let x = 0; x < WIDTH; x++) {
+        const channel = parseInt(Math.random() * 3);
         for (let y = 0; y < HEIGHT; y++) {
             let index = (x + y * WIDTH) * 4;
             
-            const channel = parseInt(Math.random() * 3);
             pixels[index + channel] = 0;
         }
     }
 }
 
-function threshold_effect() {
-    filter(THRESHOLD)
+function threshold_effect({level}) {
+    filter(THRESHOLD, level)
 }
 
 function gray_effect() {
@@ -156,41 +194,39 @@ function invert_effect() {
     filter(INVERT)
 }
 
-function posterize_effect() {
-    filter(POSTERIZE)
+function posterize_effect({range}) {
+    filter(POSTERIZE, range)
 }
 
 function dilate_effect() {
     filter(DILATE)
 }
 
-function blur_effect() {
-    filter(BLUR)
+function blur_effect({radius}) {
+    filter(BLUR, radius)
 }
 
 function erode_effect() {
     filter(ERODE)
 }
 
-function dotted_effect() {
-    const STEPSIZE = 10
+function dotted_effect({radius}) {
     background(0);
     capture.loadPixels();
     //var stepSize = floor(map(mouseX, 0, width, 5, 20));
-    for (var x = 0; x < capture.width; x += STEPSIZE) {
-        for (var y = 0; y < capture.height; y += STEPSIZE) {
+    for (var x = 0; x < capture.width; x += radius) {
+        for (var y = 0; y < capture.height; y += radius) {
             var index = ((y * capture.width) + x) * 4;
             var redVal = capture.pixels[index];
             var greenVal = capture.pixels[index + 1];
             var blueVal = capture.pixels[index + 2];
             fill(redVal, greenVal, blueVal);
-            ellipse(x, y, STEPSIZE, STEPSIZE); // square(x, y, STEPSIZE, ...corner radii) / 
+            ellipse(x, y, radius, radius); // square(x, y, STEPSIZE, ...corner radii) / 
         }
     }
 }
 
-function pixelate_effect() {
-    let interval = 10;
+function pixelate_effect({interval}) {
     for (let x = 0; x < WIDTH; x += interval) {
         for (let y = 0; y < HEIGHT; y += interval) {
             let index = (x + y * WIDTH) * 4;
@@ -273,6 +309,21 @@ const EFFECT_DATA_LIST = [
         "updatePixels": true
     },
     {
+        "label": "Split screen",
+        "function": split_screen_effect,
+        "prefunction": pre_split_screen_effect,
+        "updatePixels": true,
+        "parameters": [
+            {
+                "name": "delay",
+                "type": "int",
+                "min": 0,
+                "max": 10,
+                "default": 3,
+            }
+        ]
+    },
+    {
         "label": "Threshold",
         "function": threshold_effect,
         "parameters": [
@@ -303,9 +354,10 @@ const EFFECT_DATA_LIST = [
         "parameters": [
             {
                 "name": "range",
-                "type": "int",
+                "type": "float",
                 "min": 2,
-                "max": 255,
+                "max": 20,
+                "default": 10,
             }
         ]
     },
@@ -321,6 +373,8 @@ const EFFECT_DATA_LIST = [
                 "name": "radius",
                 "type": "int",
                 "min": 1,
+                "max": 5,
+                "default": 1,
             }
         ]
     },
@@ -338,6 +392,7 @@ const EFFECT_DATA_LIST = [
                 "type": "int",
                 "min": 0,
                 "max": 2,
+                "step": 1,
             }
         ]
     },
@@ -385,6 +440,8 @@ const EFFECT_DATA_LIST = [
                 "name": "radius",
                 "type": "int",
                 "min": 5,
+                "max": 20,
+                "default": 10,
             }
         ]
     },
@@ -396,7 +453,9 @@ const EFFECT_DATA_LIST = [
             {
                 "name": "interval",
                 "type": "int",
-                "min": 1,
+                "min": 5,
+                "max": 20,
+                "default": 10,
             }
         ]
     },
