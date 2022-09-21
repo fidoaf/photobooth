@@ -186,6 +186,62 @@ function gray_effect() {
     filter(GRAY)
 }
 
+function bw_average_effect() {
+    for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+            var index = (x + y * width) * 4;
+            var r = pixels[index + 0];
+            var g = pixels[index + 1];
+            var b = pixels[index + 2];
+            var a = pixels[index + 3];
+
+            var bw = (r + g + b) / 3;
+
+            pixels[index + 0] = bw;
+            pixels[index + 1] = bw;
+            pixels[index + 2] = bw;
+        }
+    }
+}
+
+function bw_luma_effect() {
+    for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+            var index = (x + y * width) * 4;
+            var r = pixels[index + 0];
+            var g = pixels[index + 1];
+            var b = pixels[index + 2];
+            var a = pixels[index + 3];
+
+            var luma = r * .299 + g * .587 + b * .0114;
+
+            pixels[index + 0] = luma;
+            pixels[index + 1] = luma;
+            pixels[index + 2] = luma;
+        }
+    }
+}
+
+function sepia_effect() {
+    for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+            var index = (x + y * width) * 4;
+            var r = pixels[index + 0];
+            var g = pixels[index + 1];
+            var b = pixels[index + 2];
+            var a = pixels[index + 3];
+
+            var tr = r * .393 + g * .769 + b * .189;
+            var tg = r * .349 + g * .686 + b * .168;
+            var tb = r * .272 + g * .534 + b * .131;
+
+            pixels[index + 0] = tr;
+            pixels[index + 1] = tg;
+            pixels[index + 2] = tb;
+        }
+    }
+}
+
 function opaque_effect() {
     filter(OPAQUE)
 }
@@ -274,7 +330,7 @@ function face_mask_effect() {
         // For each pose detected, loop through all the keypoints
         let pose = poses[i].pose;
 
-        if(pose.nose.confidence > 0.5){
+        if (pose.nose.confidence > 0.5) {
             noStroke();
             fill(255, 0, 0);
             ellipse(pose.nose.x, pose.nose.y, 30, 30);
@@ -387,6 +443,21 @@ const EFFECT_DATA_LIST = [
     {
         "label": "Gray",
         "function": gray_effect
+    },
+    {
+        "label": "Black & White (Average)",
+        "function": bw_average_effect,
+        "updatePixels": true,
+    },
+    {
+        "label": "Black & White (Luma formula)",
+        "function": bw_luma_effect,
+        "updatePixels": true,
+    },
+    {
+        "label": "Sepia",
+        "function": sepia_effect,
+        "updatePixels": true,
     },
     {
         "label": "Opaque",
