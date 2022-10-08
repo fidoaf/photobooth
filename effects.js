@@ -183,7 +183,20 @@ function threshold_effect({ level }) {
 }
 
 function gray_effect() {
+    canvas.style('filter', `grayscale(100%)`);
+}
+function post_gray_effect() {
+    canvas.style('filter', `grayscale(0)`);
+}
+function gray_effect_p5js() {
     filter(GRAY)
+}
+
+function hue_effect({angle}) {
+    canvas.style('filter', `hue-rotate(${angle}deg)`);
+}
+function post_hue_effect() {
+    canvas.style('filter', `hue-rotate(0)`);
 }
 
 function bw_average_effect() {
@@ -223,6 +236,12 @@ function bw_luma_effect() {
 }
 
 function sepia_effect() {
+    canvas.style('filter', `sepia(1)`);
+}
+function post_sepia_effect() {
+    canvas.style('filter', `sepia(0)`);
+}
+function sepia_effect_p5js() {
     for (var y = 0; y < height; y++) {
         for (var x = 0; x < width; x++) {
             var index = (x + y * width) * 4;
@@ -246,8 +265,21 @@ function opaque_effect() {
     filter(OPAQUE)
 }
 
+function invert_effect_css({ percentage }) {
+    canvas.style('filter', `invert(${percentage})`);
+}
+function post_invert_effect_css() {
+    canvas.style('filter', `invert(0)`);
+}
 function invert_effect() {
     filter(INVERT)
+}
+
+function saturation_effect({ percentage }) {
+    canvas.style('filter', `saturate(${percentage})`);
+}
+function post_saturation_effect() {
+    canvas.style('filter', `saturate(0)`);
 }
 
 function posterize_effect({ range }) {
@@ -259,11 +291,31 @@ function dilate_effect() {
 }
 
 function blur_effect({ radius }) {
+    canvas.style('filter', `blur(${radius}px)`);
+}
+function post_blur_effect() {
+    canvas.style('filter', `blur(0px)`);
+}
+function blur_effect_p5js({ radius }) {
     filter(BLUR, radius)
 }
 
 function erode_effect() {
     filter(ERODE)
+}
+
+function brightness_effect({ percentage }) {
+    canvas.style('filter', `brightness(${percentage}%)`);
+}
+function post_brightness_effect() {
+    canvas.style('filter', `brightness(0%)`);
+}
+
+function contrast_effect({ percentage }) {
+    canvas.style('filter', `contrast(${percentage}%)`);
+}
+function post_contrast_effect() {
+    canvas.style('filter', `contrast(0%)`);
 }
 
 function dotted_effect({ radius }) {
@@ -281,6 +333,31 @@ function dotted_effect({ radius }) {
         }
     }
 }
+
+function waves_effect(){
+    canvas.style('filter', `url('data:image/svg+xml,\
+    <svg xmlns="http://www.w3.org/2000/svg">\
+      <filter id="waves" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB">\
+        <feTurbulence type="turbulence" baseFrequency="0.01 0.01" numOctaves="1" seed="1" stitchTiles="noStitch" result="turbulence" />\
+        <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="20" xChannelSelector="G" yChannelSelector="A" result="displacementMap" />\
+      </filter>\
+    </svg>#waves')`);
+}
+function post_waves_effect(){
+    canvas.style('filter', '');
+}
+
+/**
+<filter id="filter" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB">
+	<feComponentTransfer x="0%" y="0%" width="100%" height="100%" in="SourceGraphic" result="componentTransfer">
+    		<feFuncR type="table" tableValues="1 0 1"/>
+		<feFuncG type="table" tableValues="0 1 0"/>
+		<feFuncB type="table" tableValues="1 0 1"/>
+		<feFuncA type="table" tableValues="0 1"/>
+  	</feComponentTransfer>
+</filter>
+ */
+
 
 function pixelate_effect({ interval }) {
     for (let x = 0; x < WIDTH; x += interval) {
@@ -415,7 +492,6 @@ const EFFECT_DATA_LIST = [
     {
         "label": "Split screen",
         "function": split_screen_effect,
-        "prefunction": pre_split_screen_effect,
         "updatePixels": true,
         "parameters": [
             {
@@ -441,8 +517,31 @@ const EFFECT_DATA_LIST = [
         ]
     },
     {
-        "label": "Gray",
-        "function": gray_effect
+        "label": "Gray scale",
+        "function": gray_effect,
+        // "parameters": [
+        //     {
+        //         "name": "percentage",
+        //         "type": "int",
+        //         "min": 0,
+        //         "max": 100,
+        //         "default": 0,
+        //     }
+        // ]
+    },
+    {
+        "label": "Hue rotation",
+        "function": hue_effect,
+        "parameters": [
+            {
+                "name": "angle",
+                "type": "int",
+                "min": 0,
+                "max": 360,
+                "default": 0,
+                "step": 10,
+            }
+        ]
     },
     {
         "label": "Black & White (Average)",
@@ -465,7 +564,30 @@ const EFFECT_DATA_LIST = [
     },
     {
         "label": "Invert",
-        "function": invert_effect
+        "function": invert_effect,
+        // Percentage not working as expected
+        // "parameters": [
+        //     {
+        //         "name": "percentage",
+        //         "type": "int",
+        //         "min": 0,
+        //         "max": 100,
+        //         "default": 1,
+        //     }
+        // ]
+    },
+    {
+        "label": "Saturate",
+        "function": saturation_effect,
+        "parameters": [
+            {
+                "name": "percentage",
+                "type": "int",
+                "min": 0,
+                "max": 100,
+                "default": 1,
+            }
+        ]
     },
     {
         "label": "Posterize",
@@ -491,7 +613,7 @@ const EFFECT_DATA_LIST = [
             {
                 "name": "radius",
                 "type": "int",
-                "min": 1,
+                "min": 0,
                 "max": 5,
                 "default": 1,
             }
@@ -500,6 +622,32 @@ const EFFECT_DATA_LIST = [
     {
         "label": "Erode",
         "function": erode_effect
+    },
+    {
+        "label": "Brightness",
+        "function": brightness_effect,
+        "parameters": [
+            {
+                "name": "percentage",
+                "type": "int",
+                "min": 0,
+                "max": 200,
+                "default": 100,
+            }
+        ]
+    },
+    {
+        "label": "Contrast",
+        "function": contrast_effect,
+        "parameters": [
+            {
+                "name": "percentage",
+                "type": "int",
+                "min": 0,
+                "max": 200,
+                "default": 100,
+            }
+        ]
     },
     {
         "label": "Colorize",
@@ -565,6 +713,10 @@ const EFFECT_DATA_LIST = [
         ]
     },
     {
+        "label": "Waves",
+        "function": waves_effect,
+    },
+    {
         "label": "Pixelate",
         "function": pixelate_effect,
         "updatePixels": true,
@@ -581,7 +733,6 @@ const EFFECT_DATA_LIST = [
     {
         "label": "Face mask",
         "function": face_mask_effect,
-        "prefunction": pre_face_mask_effect,
         "parameters": [
         ]
     },

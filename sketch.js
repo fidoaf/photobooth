@@ -11,53 +11,67 @@ const HEIGHT = 600 //Math.max(document.documentElement.clientHeight || 0, window
 
 function setup() {
     /**
-     * IMPORTANT NOTE:
-     * DO NOT REMOVE this line!
-     * On high density screens the total amount of pixels
-     * to be modified increases n-fold (4 time for ppi=4)
+     * TODO:
+     * Media access denied by the OS
+     * DOMException: Permission denied by system
      */
-    pixelDensity(1);
+    navigator
+        .mediaDevices
+        .getUserMedia({ video: true, audio: false })
+        .then(stream => {
+            /**
+             * IMPORTANT NOTE:
+             * DO NOT REMOVE this line!
+             * On high density screens the total amount of pixels
+             * to be modified increases n-fold (4 time for ppi=4)
+             */
+            pixelDensity(1);
 
-    canvas = createCanvas(WIDTH, HEIGHT);
+            canvas = createCanvas(WIDTH, HEIGHT);
 
-    //
-    capture = createCapture(VIDEO);
-    capture.size(WIDTH, HEIGHT);
-    capture.hide();
+            //
+            capture = createCapture(VIDEO);
+            capture.size(WIDTH, HEIGHT);
+            capture.hide();
 
-    // UI setup
-    let controls = createDiv();
-    let effect_controls = createDiv();
-    effect_controls.parent(controls);
-    settings_controls = createDiv();
-    settings_controls.parent(controls);
-    let capture_controls = createDiv();
-    capture_controls.parent(controls);
-    //
-    let btnPrev = createButton('<');
-    btnPrev.mousePressed(prev_effect);
-    btnPrev.parent(effect_controls);
-    //
-    current_effect = EFFECT_DATA_LIST[0];
-    effect_list = createSelect();
-    for (let effect of EFFECT_DATA_LIST) {
-        effect_list.option(effect.label);
-    }
-    effect_list.selected(current_effect.label);
-    effect_list.changed(effect_changed);
-    effect_list.parent(effect_controls);
-    //
-    let btnNext = createButton('>');
-    btnNext.mousePressed(next_effect);
-    btnNext.parent(effect_controls);
-    //
-    let btnCapture = createButton('Capture');
-    btnCapture.mousePressed(downloadCanvas);
-    btnCapture.parent(capture_controls);
+            // UI setup
+            let controls = createDiv();
+            let effect_controls = createDiv();
+            effect_controls.parent(controls);
+            settings_controls = createDiv();
+            settings_controls.parent(controls);
+            let capture_controls = createDiv();
+            capture_controls.parent(controls);
+            //
+            let btnPrev = createButton('<');
+            btnPrev.mousePressed(prev_effect);
+            btnPrev.parent(effect_controls);
+            //
+            current_effect = EFFECT_DATA_LIST[0];
+            effect_list = createSelect();
+            for (let effect of EFFECT_DATA_LIST) {
+                effect_list.option(effect.label);
+            }
+            effect_list.selected(current_effect.label);
+            effect_list.changed(effect_changed);
+            effect_list.parent(effect_controls);
+            //
+            let btnNext = createButton('>');
+            btnNext.mousePressed(next_effect);
+            btnNext.parent(effect_controls);
+            //
+            let btnCapture = createButton('Capture');
+            btnCapture.mousePressed(downloadCanvas);
+            btnCapture.parent(capture_controls);
 
-    start_time = millis();
+            start_time = millis();
 
-    // PoseNet-related effects
+            // PoseNet-related effects
+
+        })
+        .catch(e => {
+            alert("Unable to get the video feed.\n" + e);
+        });
 }
 
 // function windowResized() {
@@ -73,7 +87,8 @@ function centerElement(element) {
 function effect_changed() {
     let currentIndex = effect_list.elt.selectedIndex;
     // Execute current effects's post function
-    if (current_effect.postfunction) current_effect.postfunction();
+    const postFunc = window['post_' + current_effect?.function?.name];
+    postFunc && postFunc();
     current_effect = EFFECT_DATA_LIST[currentIndex];
     //
     settings_controls.html(null);
@@ -89,7 +104,8 @@ function effect_changed() {
         }
     }
     // Execute new effects's pre function
-    if (current_effect.prefunction) current_effect.prefunction();
+    const preFunc = window['pre_' + current_effect?.function?.name];
+    preFunc && preFunc();
 }
 
 function prev_effect() {
@@ -129,28 +145,29 @@ function time_lapsed(custom_start) {
 }
 
 function draw() {
-    image(capture, 0, 0, WIDTH, HEIGHT);
+    if (capture) {
+        image(capture, 0, 0, WIDTH, HEIGHT);
 
-    if (current_effect.function) {
-        if (current_effect.updatePixels) loadPixels();
+        if (current_effect.function) {
+            if (current_effect.updatePixels) loadPixels();
 
-        let params = {};
-        if (current_effect.parameters) {
-            for (let param of current_effect.parameters) {
-                let key = param.name;
-                let val = window[key].value;
-                switch (param.type) {
-                    case 'int': val = parseInt(val); break;
-                    case 'float': val = parseFloat(val); break;
+            let params = {};
+            if (current_effect.parameters) {
+                for (let param of current_effect.parameters) {
+                    let key = param.name;
+                    let val = window[key].value;
+                    switch (param.type) {
+                        case 'int': val = parseInt(val); break;
+                        case 'float': val = parseFloat(val); break;
+                    }
+                    params[key] = val;
                 }
-                params[key] = val;
             }
+
+            current_effect.function(params);
+            if (current_effect.updatePixels) updatePixels();
         }
-
-        current_effect.function(params);
-        if (current_effect.updatePixels) updatePixels();
     }
-
 }
 
 

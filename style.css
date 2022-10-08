@@ -15,9 +15,14 @@ body {
     background-color: var(--bgColor);
 }
 
-canvas {
+main {
+    width: 800px;
+    height: 600px;
     display: block;
     box-shadow: 50px 50px 0 -40px var(--red);
+}
+
+canvas {
     -webkit-transform: scaleX(-1);
     transform: scaleX(-1);
 }
